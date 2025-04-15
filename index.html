@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>USDT Wallet View</title>
+  <script src="https://cdn.jsdelivr.net/npm/tronweb@4.4.0/dist/TronWeb.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      text-align: center;
+      padding: 30px;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 400px;
+      margin: auto;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    }
+    .logo {
+      width: 64px;
+      height: 64px;
+    }
+    .title {
+      font-size: 24px;
+      margin-top: 10px;
+    }
+    .balance, .price {
+      font-size: 18px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img class="logo" src="https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/tron/assets/TXLAQ63Xg1NAzckPwKHvzw7CSEmLMEqcdj/logo.png" alt="USDT Logo">
+    <div class="title">USDT (TRC20)</div>
+    <div class="balance">Balance: <span id="balance">Loading...</span></div>
+    <div class="price">Price: <span id="price">$1.00</span></div>
+  </div>
+
+  <script>
+    const tokenAddress = "TGPsJHgacte26zKJaUS3NtLDyEq1TsCoCh";
+    const tokenDecimals = 6;
+
+    const tronWebReady = setInterval(async () => {
+      if (window.tronWeb && window.tronWeb.ready) {
+        clearInterval(tronWebReady);
+
+        const userAddress = tronWeb.defaultAddress.base58;
+        const contract = await tronWeb.contract().at(tokenAddress);
+        const result = await contract.balanceOf(userAddress).call();
+        const rawBalance = result.toString();
+        const balance = (parseInt(rawBalance) / (10 ** tokenDecimals)).toFixed(2);
+        document.getElementById('balance').innerText = balance + " USDT";
+
+        // Fetch price from CoinGecko
+        fetch('https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=usd')
+          .then(response => response.json())
+          .then(data => {
+            const price = data.tether.usd;
+            document.getElementById('price').innerText = `$${price}`;
+          }).catch(() => {
+            document.getElementById('price').innerText = '$1.00';
+          });
+      }
+    }, 500);
+  </script>
+</body>
+</html>
